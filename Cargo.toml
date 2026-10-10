@@ -1,0 +1,15 @@
+[package]
+name = "gray-openai-compat"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+description = "Shared OpenAI Chat-Completions compat relay for gray provider sidecars: Responses-API request -> upstream /chat/completions -> Responses SSE fold."
+
+[lib]
+name = "openai_compat"
+path = "src/lib.rs"
+
+[dependencies]
+gray-acp-bridge = { path = "../gray-acp-bridge" }
+serde_json = { version = "1", features = ["preserve_order"] }
+ureq = { version = "2", features = ["json"] }
