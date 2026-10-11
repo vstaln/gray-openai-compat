@@ -311,7 +311,11 @@ pub fn post_chat(cfg: &Compat, body: &Value) -> Result<Value, String> {
         Err(ureq::Error::Status(code, resp)) => {
             let mut text = resp.into_string().unwrap_or_default();
             if text.len() > 600 {
-                text.truncate(600);
+                let mut end = 600;
+                while !text.is_char_boundary(end) {
+                    end -= 1;
+                }
+                text.truncate(end);
                 text.push('…');
             }
             Err(format!("upstream HTTP {code}: {text}"))
