@@ -123,9 +123,7 @@ fn input_to_messages(input: &[Value]) -> Vec<Value> {
                         "arguments": item["arguments"],
                     },
                 });
-                let attach = msgs
-                    .last_mut()
-                    .filter(|m| m["role"] == "assistant");
+                let attach = msgs.last_mut().filter(|m| m["role"] == "assistant");
                 match attach {
                     Some(m) => {
                         if m.get("tool_calls").is_none() {
@@ -186,9 +184,7 @@ fn tools_to_chat(tools: &[Value]) -> Vec<Value> {
 
 fn tool_choice_to_chat(v: &Value) -> Option<Value> {
     match v {
-        Value::String(s) if ["auto", "required", "none"].contains(&s.as_str()) => {
-            Some(json!(s))
-        }
+        Value::String(s) if ["auto", "required", "none"].contains(&s.as_str()) => Some(json!(s)),
         Value::Object(_) if v["type"].as_str() == Some("function") => Some(json!({
             "type": "function",
             "function": {"name": v["name"]},
@@ -242,7 +238,9 @@ pub fn to_turn_result(v: &Value) -> TurnResult {
 
     if let Some(r) = msg["reasoning_content"].as_str() {
         if !r.is_empty() {
-            items.push(OutItem::Reasoning { text: r.to_string() });
+            items.push(OutItem::Reasoning {
+                text: r.to_string(),
+            });
         }
     }
     let text = match &msg["content"] {
@@ -262,7 +260,10 @@ pub fn to_turn_result(v: &Value) -> TurnResult {
         for tc in calls {
             items.push(OutItem::FunctionCall {
                 call_id: tc["id"].as_str().unwrap_or_default().to_string(),
-                name: tc["function"]["name"].as_str().unwrap_or_default().to_string(),
+                name: tc["function"]["name"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_string(),
                 arguments: tc["function"]["arguments"]
                     .as_str()
                     .unwrap_or_default()
@@ -289,7 +290,10 @@ pub fn to_turn_result(v: &Value) -> TurnResult {
     TurnResult {
         items,
         usage,
-        stop_reason: choice["finish_reason"].as_str().unwrap_or("stop").to_string(),
+        stop_reason: choice["finish_reason"]
+            .as_str()
+            .unwrap_or("stop")
+            .to_string(),
         suspended: false,
     }
 }
@@ -307,7 +311,9 @@ pub fn post_chat(cfg: &Compat, body: &Value) -> Result<Value, String> {
         req = req.set(k, v);
     }
     match req.send_json(body) {
-        Ok(r) => r.into_json().map_err(|e| format!("upstream JSON decode: {e}")),
+        Ok(r) => r
+            .into_json()
+            .map_err(|e| format!("upstream JSON decode: {e}")),
         Err(ureq::Error::Status(code, resp)) => {
             let mut text = resp.into_string().unwrap_or_default();
             if text.len() > 600 {
@@ -357,16 +363,14 @@ pub fn probe_models(cfg: &Compat) -> Result<Vec<Value>, String> {
 ///
 /// `model_map` optionally rewrites the wire model id to the upstream id
 /// (e.g. alias rows in a static catalog).
-pub fn compat_turn(
-    cfg: Arc<Compat>,
-    model_map: Option<Arc<dyn Fn(&str) -> String + Send + Sync>>,
-) -> TurnFn {
+pub type ModelMap = Arc<dyn Fn(&str) -> String + Send + Sync>;
+
+pub fn compat_turn(cfg: Arc<Compat>, model_map: Option<ModelMap>) -> TurnFn {
     Arc::new(move |body: &[u8], cancel: &AtomicBool| {
         if cancel.load(Ordering::SeqCst) {
             return Err("turn cancelled".into());
         }
-        let body: Value =
-            serde_json::from_slice(body).map_err(|e| format!("request JSON: {e}"))?;
+        let body: Value = serde_json::from_slice(body).map_err(|e| format!("request JSON: {e}"))?;
         let wire_model = body["model"].as_str().unwrap_or_default().to_string();
         let prepared = chat::prepare_turn(&body, &wire_model)?;
         let upstream_model = model_map
