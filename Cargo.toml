@@ -10,6 +10,6 @@ name = "openai_compat"
 path = "src/lib.rs"
 
 [dependencies]
-gray-acp-bridge = { path = "../gray-acp-bridge" }
+gray-acp = { git = "https://github.com/vstaln/gray.git" }
 serde_json = { version = "1", features = ["preserve_order"] }
 ureq = { version = "2", features = ["json"] }

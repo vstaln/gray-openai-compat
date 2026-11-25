@@ -3,17 +3,17 @@
 //! (Ollama, LM Studio, DeepSeek, Qwen/DashScope, Kimi/Moonshot, Z.AI,
 //! Gemini's /openai surface, GitHub Copilot).
 //!
-//! One [`compat_turn`] plugs into `acp_bridge::relay::mint_turn`: the
+//! One [`compat_turn`] plugs into `gray_acp::relay::mint_turn`: the
 //! relay serves the host's POST, we translate, POST upstream
 //! (non-streaming — the relay synthesizes the SSE stream), and fold the
-//! completion back through `acp_bridge::chat::fold_result`.
+//! completion back through `gray_acp::chat::fold_result`.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use acp_bridge::chat::{self, OutItem, PreparedTurn, TurnResult, Usage};
-use acp_bridge::relay::TurnFn;
+use gray_acp::chat::{self, OutItem, PreparedTurn, TurnResult, Usage};
+use gray_acp::relay::TurnFn;
 use serde_json::{json, Value};
 
 /// One upstream endpoint's wiring.
