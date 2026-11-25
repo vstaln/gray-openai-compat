@@ -19,7 +19,7 @@ Built for (and by) `gray-ollama-sub`, `gray-lmstudio-sub`,
 | `to_turn_result(v)` | Completion → `TurnResult` (text or folded `tool_calls`, usage). |
 | `post_chat(cfg, body)` | Blocking POST to `{base}/chat/completions` (non-streaming — the relay synthesizes SSE). |
 | `probe_models(cfg)` | `GET {base}/models` → catalog rows. |
-| `compat_turn(...)` | The one-call integration: plug it into `acp_bridge::relay::mint_turn`'s `TurnFn` and the whole provider path is done. |
+| `compat_turn(...)` | The one-call integration: plug it into `gray_acp::relay::mint_turn`'s `TurnFn` and the whole provider path is done. |
 
 ## The shape
 
